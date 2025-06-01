@@ -1,4 +1,4 @@
-# flame_ccg_admin
+# flame_ccg_web
 
 This template should help get you started developing with Vue 3 in Vite.
 
