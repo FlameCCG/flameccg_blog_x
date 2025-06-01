@@ -293,4 +293,3 @@ html {
     overflow: visible;
 }
 </style>
-@/stores/user_store

@@ -251,4 +251,4 @@ const toLogin = () => {
         box-shadow: 0 2px 8px rgba(var(--arcoblue-6), 0.25);
     }
 }
-</style>@/stores/user_store
+</style>
