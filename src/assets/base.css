@@ -1,0 +1,35 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+a {
+  text-decoration: none;
+}
+
+.md-editor {
+  --md-color: var(--color-text-1) !important;
+  --md-hover-color: var(--color-text-2) !important;
+  --md-bk-color: var(--color-bg-1) !important;
+  --md-bk-color-outstand: var(--color-fill-1) !important;
+  --md-bk-hover-color: var(--color-fill-2) !important;
+  --md-border-color: var(--color-border);
+  --md-border-hover-color: var(--color-border-hover) !important;
+  --md-border-active-color: var(--color-primary-border) !important;
+  --md-modal-shadow: var(--shadow-lg) !important;
+  --md-scrollbar-bg-color: var(--color-fill-1) !important;
+  --md-scrollbar-thumb-color: var(--color-fill-4) !important;
+  --md-scrollbar-thumb-hover-color: var(--color-fill-3) !important;
+  --md-scrollbar-thumb-active-color: var(--color-fill-2) !important;
+}
+
+.md-editor-resize-operate {
+  background-color: var(--color-fill-1) !important
+}
+
+.arco-typography {
+  margin-bottom: 0 !important;
+}
