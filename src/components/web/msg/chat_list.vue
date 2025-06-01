@@ -9,7 +9,9 @@
                     <div class="date">{{ dateTimeFormat(item.createAt) }}</div>
                 </div>
                 <div class="bottom">
-                    <a-avatar :image-url="item.sendUserAvatar"></a-avatar>
+                    <a-avatar :image-url="item.sendUserAvatar"
+                        @click="() => router.push({ name: 'userArticle', params: { id: item.senderUserID } })"
+                        style="cursor: pointer;"></a-avatar>
                     <div class="content">
                         {{ item.msg.textMsg.content }}
                     </div>
@@ -28,6 +30,8 @@ import { dateTimeFormat } from '@/utils/date';
 import { useUserStore } from '@/stores/user_store';
 import { watch } from 'vue';
 import { Message } from '@arco-design/web-vue';
+import { useRouter } from 'vue-router';
+const router = useRouter()
 const chats = reactive<listResponse<chatListAndUserRes>>({
     list: [],
     count: 0

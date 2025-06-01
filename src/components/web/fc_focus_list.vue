@@ -18,10 +18,15 @@
                     </div>
                     <div class="action" v-if="item.relationShip !== 5">
                         <a-button type="primary" @click="focus(false, item.userID)" size="mini"
-                            v-if="item.relationShip === 2 || item.relationShip === 4" class="followed-btn">
+                            v-if="item.relationShip === 2" class="followed-btn">
                             <span class="btn-text">已关注</span>
                         </a-button>
-                        <a-button @click="focus(true, item.userID)" size="mini" v-else class="follow-btn">
+                        <a-button type="primary" @click="focus(false, item.userID)" size="mini"
+                            v-else-if="item.relationShip === 4" class="anotherFollow-btn">
+                            <span class="btn-text">互相关注</span>
+                        </a-button>
+                        <a-button @click="focus(true, item.userID)" size="mini"
+                            v-else-if="item.relationShip === 1 || item.relationShip === 3" class="follow-btn">
                             <span class="btn-text">关注</span>
                         </a-button>
                     </div>
@@ -80,7 +85,7 @@ const goUser = (id: number) => {
 }
 
 const focus = async (isFocusing: boolean, userID: number) => {
-    focusService(isFocusing, userID)
+    await focusService(isFocusing, userID)
     getData();
 }
 
@@ -108,25 +113,25 @@ const params = reactive<focusAndFansReq>({
 });
 
 const store = useUserStore()
-
 async function getData() {
     params.isMe = store.userBaseInfo.userID === props.userID;
+    console.log(params)
     if (props.type === "follow") {
         const res = await FocusListApi(params);
         Object.assign(data, res.data);
     } else if (props.type === "fans") {
         const res = await FansApi(params);
+        console.log(res)
         Object.assign(data, res.data);
     }
 }
 
-getData();
 
 const route = useRoute();
 watch(() => route.query.key, (key) => {
     params.key = key as string || '';
     getData();
-})
+}, { immediate: true })
 </script>
 
 <style lang="less">

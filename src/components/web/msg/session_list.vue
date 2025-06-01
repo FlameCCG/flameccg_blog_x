@@ -26,8 +26,11 @@ import { mySessionListApi, type mySessionListRes } from '@/api/chat_api';
 import Fc_label from '@/components/common/fc_label.vue';
 import { relationOptions } from '@/options/options';
 import router from '@/router';
+import { userBaseInfoStore } from '@/stores/user_base_store';
 import { useUserStore } from '@/stores/user_store';
 import { dateFormat } from '@/utils/date';
+import { it } from 'node:test';
+import { onMounted } from 'vue';
 import { reactive } from 'vue';
 import { useRoute } from 'vue-router';
 const route = useRoute();
@@ -47,10 +50,37 @@ const session = reactive<listResponse<mySessionListRes>>({
 })
 const params = reactive<paramsType>({})
 const store = useUserStore();
+const baseStore = userBaseInfoStore()
 const getData = async () => {
     if (!store.isLogin) return;
     const res = await mySessionListApi(params);
     Object.assign(session, res.data);
+    // 判断route的用户在不在session列表中，如果不在，则刷新页面的
+    const useID = Number(route.query.userID)
+    if (!isNaN(useID) && session.list.findIndex(item => item.userID === useID) === -1) {
+        initUser(useID)
+    }
+}
+const initUser = (useID: number) => {
+    const item = session.list.find(item => item.userID === useID)
+    if (item) {
+        return
+    }
+    if (baseStore.userBaseInfo.userID) {
+        session.list.push({
+            userID: useID,
+            userAvatar: baseStore.userBaseInfo.avatar,
+            userNickname: baseStore.userBaseInfo.nickname,
+            relation: baseStore.userBaseInfo.relation,
+            newMsgDate: dateFormat(new Date().toString()),
+            msgType: 1,
+            msg: {
+                textMsg: {
+                    content: ''
+                }
+            }
+        })
+    }
 }
 getData()
 </script>

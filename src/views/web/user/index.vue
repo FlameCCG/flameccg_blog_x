@@ -48,7 +48,7 @@
                   <i class="iconfont icon-guanzhu"></i>互相关注
                 </a-button>
               </Fc_a>
-              <router-link to="">
+              <router-link :to="{ name: 'msgChat', query: { userID: store.userBaseInfo.userID } }">
                 <a-button type="outline" size="mini">
                   <i class="iconfont icon-sixin"></i> 私信
                 </a-button></router-link>
