@@ -17,16 +17,29 @@ const userCenterStore = useUserCenterStore();
 .fc_main {
     width: 100%;
     display: flex;
-    justify-content: center;
-    margin-top: 60px;
-    min-height: calc(100vh - 120px);
+    flex-direction: column;
+    align-items: center;
+    margin-top: 64px;
+    min-height: calc(100vh - 128px);
     flex: 1;
-    background-color: var(--color-neutral-2);
+    background: linear-gradient(180deg, var(--color-fill-1), var(--color-fill-2));
+
+    >.banner {
+        width: 100%;
+        max-width: 1200px;
+        height: 220px;
+        margin: 0 24px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgb(var(--arcoblue-4)), rgb(var(--arcoblue-6)));
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
 
     >.fc_container {
-        width: 1200px;
+        width: 100%;
+        max-width: 1200px;
         min-height: calc(100vh - 80px);
-        margin-top: 20px;
+        margin-top: 24px;
+        padding: 0 24px;
         display: flex;
         justify-content: space-between;
     }
