@@ -31,3 +31,4 @@ test.html
 流体.html
 流体1.html
 *.tsbuildinfo
+*.stackdump
