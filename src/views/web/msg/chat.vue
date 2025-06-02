@@ -6,18 +6,18 @@
             <div class="chat_menu" v-if="route.query.userID">
                 <div class="icons">
                     <span>
-                        <IconImage></IconImage>
+                        <IconFaceSmileFill></IconFaceSmileFill>
                     </span>
                     <span>
-                        <IconImage></IconImage>
+                        <Fc_icon_image_upload @ok="sendImage"></Fc_icon_image_upload>
                     </span>
                 </div>
                 <div class="chat_ipt">
-                    <a-textarea placeholder="请输入消息" :auto-size="{ minRows: 6, maxRows: 6 }" @keydown.enter="send"
+                    <a-textarea placeholder="请输入消息" :auto-size="{ minRows: 6, maxRows: 6 }" @keydown.enter="sendText"
                         v-model="msg"></a-textarea>
                     <div class="right">
                         <span class="tips">按enter发送</span><a-button type="primary" size="small"
-                            @click="send">发送</a-button>
+                            @click="sendText">发送</a-button>
                     </div>
                 </div>
             </div>
@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { type realTimeChatReq } from '@/api/chat_api';
+import Fc_icon_image_upload from '@/components/common/fc_icon_image_upload.vue';
 import Chat_list from '@/components/web/msg/chat_list.vue';
 import session_list from '@/components/web/msg/session_list.vue'
 import { useUserStore } from '@/stores/user_store';
@@ -39,7 +40,7 @@ const msg = ref()
 const getChatList = (userID: number) => {
     chatListRef.value?.getData(userID)
 }
-const send = (_event?: Event) => {
+const sendText = (_event: Event) => {
     if (_event instanceof KeyboardEvent && _event.key === 'Enter') {
         _event.preventDefault();
     }
@@ -55,12 +56,26 @@ const send = (_event?: Event) => {
     store.ws?.send(JSON.stringify(data))
     msg.value = ''
 }
+const sendImage = (src: string) => {
+    let data: realTimeChatReq = {
+        revUserId: Number(route.query.userID),
+        msgType: 2,
+        msg: {
+            imageMsg: {
+                src
+            }
+        }
+    }
+    store.ws?.send(JSON.stringify(data))
+    msg.value = ''
+}
 </script>
 
 <style lang="less">
 .chat_view {
     display: flex;
     height: 100%;
+    color: var(--color-text-2);
 
     .session_list {
         width: 260px;
@@ -119,8 +134,12 @@ const send = (_event?: Event) => {
         .chat_menu {
             width: 100%;
             border-top: @fc_border;
+            height: 170px;
 
             .icons {
+                display: flex;
+                align-items: center;
+
                 >span {
                     padding: 8px;
                     color: var(--color-text-2);
@@ -138,6 +157,7 @@ const send = (_event?: Event) => {
 
             .chat_ipt {
                 position: relative;
+                height: 75%;
 
                 .arco-textarea-wrapper {
                     background-color: transparent;

@@ -1,7 +1,7 @@
 import { adminLogin, userLogin } from '@/api/user_api';
 import { defineStore } from 'pinia';
 import router from '@/router';
-import { Message } from '@arco-design/web-vue';
+import { Message, Notification } from '@arco-design/web-vue';
 import { userBaseInfo } from '@/api/user_api';
 import { jsonStr } from '@/utils/decode';
 import { noReadMsgCountApi, type noReadMsgCountRes, type siteResponse } from '@/api/site_api';
@@ -158,15 +158,36 @@ export const useUserStore = defineStore('userStore', {
       Object.assign(this.noReadMsgInfo, res.data);
     },
     initWs() {
+      // 如果已存在 ws 且是 OPEN 状态，则不重复连接
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        return;
+      }
+      // 如果 ws 实例存在但非 OPEN，尝试关闭旧连接
+      if (this.ws) {
+        this.ws.close();
+      }
       this.ws = new WebSocket(
         `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/api/chat/ws?token=${this.userBaseInfo.token}`,
       );
       this.ws.onopen = () => {
         console.log('ws连接成功');
       };
+
       this.ws.onmessage = (event) => {
-        this.wsChatList = [];
         const res = JSON.parse(event.data) as baseResponse<chatListAndUserRes>;
+        if (!res.data.isMe) {
+          console.log(res.data);
+          // 我是接收方
+          const userID = Number(router.currentRoute.value.query.userID);
+          if (userID !== res.data.senderUserID) {
+            Notification.info({
+              title: '新消息',
+              content: '你有一条新消息',
+            });
+            return;
+          }
+        }
+        this.wsChatList = [];
         this.wsChatList.push(res.data);
       };
       this.ws.onclose = () => {

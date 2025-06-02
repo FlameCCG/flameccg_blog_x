@@ -13,7 +13,7 @@
                         @click="() => router.push({ name: 'userArticle', params: { id: item.senderUserID } })"
                         style="cursor: pointer;"></a-avatar>
                     <div class="content">
-                        {{ item.msg.textMsg.content }}
+                        <Msg_content :msg="item.msg"></Msg_content>
                     </div>
                 </div>
             </div>
@@ -31,6 +31,8 @@ import { useUserStore } from '@/stores/user_store';
 import { watch } from 'vue';
 import { Message } from '@arco-design/web-vue';
 import { useRouter } from 'vue-router';
+import { MdPreview } from 'md-editor-v3';
+import Msg_content from './msg_content.vue';
 const router = useRouter()
 const chats = reactive<listResponse<chatListAndUserRes>>({
     list: [],
@@ -66,15 +68,18 @@ function goBottom() {
         behavior: 'smooth'
     })
 }
-watch(() => store.wsChatList, () => {
-    const data = store.wsChatList
-    console.log(data)
-    chats.list.push(data[0])
-    chats.count++
-    nextTick(() => {
-        goBottom()
-    })
-})
+watch(
+    () => store.wsChatList[store.wsChatList.length - 1],
+    (newMsg, oldMsg) => {
+        if (!newMsg) return;
+        if (newMsg.id === oldMsg?.id) return;
+        chats.list.push(newMsg);
+        nextTick(() => {
+            goBottom();
+        });
+    }
+);
+
 async function loadMore() {
     // @ts-ignore
     params.page += 1

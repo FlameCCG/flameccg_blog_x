@@ -59,7 +59,7 @@ export const mySessionListApi = (
 };
 
 export interface msgType {
-  textMsg: textMsg;
+  textMsg?: textMsg;
   imageMsg?: imageMsg;
   markdownMsg?: markdownMsg;
   msgReadMsg?: msgReadMsg;

@@ -1,19 +1,26 @@
 <template>
-    <div class="fc_session_list">
-        <div class="item" @click="goItem(item)" v-for="item in session.list"
-            :class="{ active: item.userID === Number(route.query.userID) }">
-            <a-avatar :image-url="item.userAvatar"></a-avatar>
-            <div class="info">
-                <div class="top">
-                    <div class="left">
-                        <a-typography-text :ellipsis="{ rows: 2 }">{{ item.userNickname }}</a-typography-text>
-                        <fc_label :options="relationOptions" :value="item.relation"></fc_label>
+    <div class="fc-session-list">
+        <div class="session-item" :class="{ active: item.userID === Number(route.query.userID) }"
+            v-for="item in session.list" :key="item.userID" @click="goItem(item)">
+            <div class="avatar-wrapper">
+                <a-avatar :image-url="item.userAvatar" :size="48" shape="circle" />
+            </div>
+
+            <div class="content-wrapper">
+                <!-- 顶部：昵称 + 关系标签 -->
+                <div class="header-row">
+                    <div class="user-info">
+                        <span class="nickname" :title="item.userNickname">{{ item.userNickname }}</span>
+                        <fc_label :options="relationOptions" :value="item.relation" />
                     </div>
-                    <div class="date">{{ dateFormat(item.newMsgDate) }}</div>
-                    <div class="bottom">
-                        <a-typography-text :ellipsis="{ rows: 1 }">{{ item.msg.textMsg.content
-                        }}</a-typography-text>
+                </div>
+
+                <!-- 底部：最后一条消息 + 时间 -->
+                <div class="bottom-row">
+                    <div class="message-preview" :title="item.msg.textMsg?.content">
+                        <Msg_preview :msg="item.msg"></Msg_preview>
                     </div>
+                    <span class="timestamp">{{ dateFormat(item.newMsgDate) }}</span>
                 </div>
             </div>
         </div>
@@ -21,113 +28,209 @@
 </template>
 
 <script setup lang="ts">
-import { type paramsType, type baseResponse, type listResponse } from '@/api';
-import { mySessionListApi, type mySessionListRes } from '@/api/chat_api';
-import Fc_label from '@/components/common/fc_label.vue';
+import { reactive, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { relationOptions } from '@/options/options';
-import router from '@/router';
+import Fc_label from '@/components/common/fc_label.vue';
+import { mySessionListApi, type mySessionListRes } from '@/api/chat_api';
+import { dateFormat } from '@/utils/date';
+import { type paramsType, type listResponse } from '@/api';
 import { userBaseInfoStore } from '@/stores/user_base_store';
 import { useUserStore } from '@/stores/user_store';
-import { dateFormat } from '@/utils/date';
-import { it } from 'node:test';
-import { onMounted } from 'vue';
-import { reactive } from 'vue';
-import { useRoute } from 'vue-router';
+import Msg_preview from './msg_preview.vue';
+
 const route = useRoute();
-const emits = defineEmits(['routeChange'])
+const router = useRouter();
+const emit = defineEmits<{
+    (e: 'routeChange', userID: number): void;
+}>();
+
+const session = reactive<listResponse<mySessionListRes>>({ list: [], count: 0 });
+const params = reactive<paramsType>({});
+
+const userStore = useUserStore();
+const baseStore = userBaseInfoStore();
+
 const goItem = (item: mySessionListRes) => {
-    router.push({
-        name: 'msgChat',
-        query: {
-            userID: item.userID
-        }
+    router.push({ name: 'msgChat', query: { userID: item.userID } });
+    emit('routeChange', item.userID);
+};
+
+const initUser = (userID: number) => {
+    if (session.list.some((i) => i.userID === userID) || !baseStore.userBaseInfo.userID) return;
+
+    session.list.push({
+        userID,
+        userAvatar: baseStore.userBaseInfo.avatar,
+        userNickname: baseStore.userBaseInfo.nickname,
+        relation: baseStore.userBaseInfo.relation,
+        newMsgDate: dateFormat(new Date().toString()),
+        msgType: 1,
+        msg: { textMsg: { content: '' } },
     });
-    emits('routeChange', item.userID)
-}
-const session = reactive<listResponse<mySessionListRes>>({
-    list: [],
-    count: 0
-})
-const params = reactive<paramsType>({})
-const store = useUserStore();
-const baseStore = userBaseInfoStore()
+};
+
 const getData = async () => {
-    if (!store.isLogin) return;
-    const res = await mySessionListApi(params);
-    Object.assign(session, res.data);
-    // 判断route的用户在不在session列表中，如果不在，则刷新页面的
-    const useID = Number(route.query.userID)
-    if (!isNaN(useID) && session.list.findIndex(item => item.userID === useID) === -1) {
-        initUser(useID)
+    if (!userStore.isLogin) return;
+    const { data } = await mySessionListApi(params);
+    Object.assign(session, data);
+
+    // 若 URL 中 userID 不在列表，补一条占位项（常见于首次私聊）
+    const urlID = Number(route.query.userID);
+    if (!Number.isNaN(urlID) && !session.list.some((i) => i.userID === urlID)) {
+        initUser(urlID);
     }
-}
-const initUser = (useID: number) => {
-    const item = session.list.find(item => item.userID === useID)
-    if (item) {
-        return
-    }
-    if (baseStore.userBaseInfo.userID) {
-        session.list.push({
-            userID: useID,
-            userAvatar: baseStore.userBaseInfo.avatar,
-            userNickname: baseStore.userBaseInfo.nickname,
-            relation: baseStore.userBaseInfo.relation,
-            newMsgDate: dateFormat(new Date().toString()),
-            msgType: 1,
-            msg: {
-                textMsg: {
-                    content: ''
-                }
-            }
-        })
-    }
-}
-getData()
+};
+
+onMounted(getData);
 </script>
 
-<style lang="less">
-.fc_session_list {
-    width: 260px;
-    border-right: @fc_border;
+<style lang="less" scoped>
+.fc-session-list {
+    width: 300px;
     height: 100%;
+    background-color: var(--color-bg-1);
+    border-right: 1px solid var(--color-border-2);
+    overflow-y: auto;
 
-    .item {
-        display: flex;
-        padding: 10px 20px;
-        cursor: pointer;
+    // 自定义滚动条样式
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
 
-        .arco-avatar {
-            flex-shrink: 0;
-        }
+    &::-webkit-scrollbar-track {
+        background: var(--color-fill-1);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--color-fill-3);
+        border-radius: 2px;
 
         &:hover {
-            background-color: var(--color-fill-2);
+            background: var(--color-fill-4);
         }
+    }
 
-        &.active {
+    .session-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s var(--motion-ease-out);
+        border-bottom: 1px solid var(--color-border-1);
+        position: relative;
+
+        &:hover {
             background-color: var(--color-fill-1);
         }
 
-        .info {
-            width: 100%;
-            margin-left: 10px;
+        &.active {
+            background-color: var(--color-primary-light-1);
+
+            &::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 3px;
+                background-color: var(--color-primary-6);
+            }
+
+            .nickname {
+                color: var(--color-primary-6);
+                font-weight: 600;
+            }
+        }
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        .avatar-wrapper {
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            min-width: 0;
             display: flex;
             flex-direction: column;
-            justify-content: start;
+            gap: 6px;
 
-            .top {
+            .header-row {
                 display: flex;
-                justify-content: space-between;
                 align-items: center;
+                width: 100%;
 
-                .left {
+                .user-info {
                     display: flex;
                     align-items: center;
+                    gap: 8px;
+                    flex: 1;
+                    min-width: 0;
+
+                    .nickname {
+                        font-size: 14px;
+                        font-weight: 500;
+                        color: var(--color-text-1);
+                        line-height: 1.4;
+                        max-width: 120px;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        flex-shrink: 0;
+                    }
+                }
+            }
+
+            .bottom-row {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                gap: 8px;
+                width: 100%;
+
+                .message-preview {
+                    font-size: 13px;
+                    color: var(--color-text-2);
+                    line-height: 1.4;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    flex: 1;
+                    min-width: 0;
                 }
 
-                .date {
+                .timestamp {
                     font-size: 12px;
-                    color: var(--color-text-2);
+                    color: var(--color-text-3);
+                    white-space: nowrap;
+                    flex-shrink: 0;
+                    line-height: 1.2;
+                    align-self: flex-end;
+                }
+            }
+        }
+    }
+}
+
+// 响应式适配
+@media (max-width: 768px) {
+    .fc-session-list {
+        width: 280px;
+
+        .session-item {
+            padding: 12px;
+
+            .content-wrapper {
+                .header-row {
+                    .user-info {
+                        .nickname {
+                            max-width: 100px;
+                        }
+                    }
                 }
             }
         }
