@@ -25,7 +25,8 @@
                 <div class="history" v-if="isLogin">
                     <span @click="router.push({ name: 'userBrowseHistory' })">历史</span>
                 </div>
-                <div class="publish" v-if="isLogin" @click="router.push({ name: 'platformArticleAdd' })">
+                <div class="publish" v-if="isLogin && !(siteStore.siteInfo.siteInfo.mode) || userStore.isAdmin"
+                    @click="router.push({ name: 'platformArticleAdd' })">
                     <i class="iconfont icon-fabu"></i>
                     <span>发布</span>
                 </div>

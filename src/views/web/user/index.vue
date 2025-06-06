@@ -69,7 +69,7 @@
                 v-if="(store.userBaseInfo.openFollow) || store.isMe">
                 {{ store.isMe ? '我的文章' : '他的文章' }}
               </RouterLink>
-              <RouterLink :to="{ name: 'userCollect' }" class="nav-link" active-class="active"
+              <RouterLink :to="{ name: 'userCollect',query:{collectID:-1} }" class="nav-link" active-class="active"
                 v-if="(store.userBaseInfo.openCollect) || store.isMe">
                 {{ store.isMe ? '我的收藏' : '他的收藏' }}
               </RouterLink>

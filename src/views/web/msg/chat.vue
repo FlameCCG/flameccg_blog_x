@@ -1,20 +1,23 @@
 <template>
     <div class="chat_view">
-        <session_list @routeChange="getChatList"></session_list>
-        <div class="chat_innter">
+        <template v-if="count">
+            <session_list @routeChange="getChatList" @get-session-count="getSessionCount"></session_list>
+        </template>
+        <template v-else>
+            <a-empty title="暂无会话"></a-empty>
+        </template>
+        <div class="chat_innter" v-if="count">
             <Chat_list v-if="route.query.userID" ref="chatListRef"></Chat_list>
             <div class="chat_menu" v-if="route.query.userID">
                 <div class="icons">
-                    <span>
-                        <IconFaceSmileFill></IconFaceSmileFill>
-                    </span>
+                    <emoji_trigger @select="select"></emoji_trigger>
                     <span>
                         <Fc_icon_image_upload @ok="sendImage"></Fc_icon_image_upload>
                     </span>
                 </div>
                 <div class="chat_ipt">
                     <a-textarea placeholder="请输入消息" :auto-size="{ minRows: 6, maxRows: 6 }" @keydown.enter="sendText"
-                        v-model="msg"></a-textarea>
+                        class="fc_textarea_msg" v-model="msg"></a-textarea>
                     <div class="right">
                         <span class="tips">按enter发送</span><a-button type="primary" size="small"
                             @click="sendText">发送</a-button>
@@ -33,10 +36,26 @@ import session_list from '@/components/web/msg/session_list.vue'
 import { useUserStore } from '@/stores/user_store';
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
+import emoji_trigger from '@/components/web/msg/emoji_trigger.vue'
+const select = (type: string, value: string) => {
+    if (type === 'emoji') {
+        const t = document.querySelector('.fc_textarea_msg textarea') as HTMLTextAreaElement
+        const s1 = msg.value.substring(0, t.selectionStart)
+        const s2 = msg.value.substring(t.selectionEnd)
+        msg.value = s1 + value + s2
+        return
+    }
+    sendImage(value)
+}
+const count = ref(1)
+const getSessionCount = (c: number) => {
+    count.value = c
+}
+
 const chatListRef = ref()
 const route = useRoute()
 const store = useUserStore()
-const msg = ref()
+const msg = ref('')
 const getChatList = (userID: number) => {
     chatListRef.value?.getData(userID)
 }

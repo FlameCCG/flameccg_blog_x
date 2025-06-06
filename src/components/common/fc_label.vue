@@ -22,7 +22,7 @@ const item = computed(() => {
 <style lang="less">
 .arco-tag {
     border-radius: 5px;
-    color: #fff;
+    color: var(--color-text-2);
     margin-left: 8px;
 }
 </style>

@@ -175,8 +175,11 @@ export const useUserStore = defineStore('userStore', {
 
       this.ws.onmessage = (event) => {
         const res = JSON.parse(event.data) as baseResponse<chatListAndUserRes>;
+        if (res.code === 1001) {
+          Message.info(res.msg);
+          return;
+        }
         if (!res.data.isMe) {
-          console.log(res.data);
           // 我是接收方
           const userID = Number(router.currentRoute.value.query.userID);
           if (userID !== res.data.senderUserID) {

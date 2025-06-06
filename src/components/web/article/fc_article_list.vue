@@ -62,7 +62,6 @@
             </div>
         </div>
     </div>
-
 </template>
 
 <script setup lang="ts">
@@ -85,6 +84,7 @@ async function getData() {
     try {
         loading.value = true;
         const res = await articleListApi(params);
+        console.log(res)
         data.list = res.data.list;
         data.count = res.data.count;
     } catch (error) {
@@ -124,8 +124,8 @@ watch(() => route.query, () => {
     if (route.query.key !== undefined) {
         params.key = route.query.key as string;
     }
-
     const collectID = Number(route.query.collectID);
+    console.log(collectID)
     if (isNaN(collectID)) {
         params.collectID = undefined
     } else {
@@ -134,11 +134,12 @@ watch(() => route.query, () => {
     if (route.query.key !== undefined) {
         params.key = route.query.key as string;
     }
+    console.log(params)
     getData()
 }, {
-    deep: true
+    deep: true,
+    immediate: true,
 })
-getData()
 defineExpose({
     getData,
 })

@@ -7,6 +7,12 @@
         <a-form-item placeholder="请输入文章简介(选填)">
             <a-textarea v-model="form.abstract" placeholder="请输入文章简介"></a-textarea>
         </a-form-item>
+        <!-- 是否开启ai分析 -->
+        <div style="display: flex; align-items: center;margin-bottom: 20px;">
+            <span style="color: var(--color-text-secondary);">是否开启ai分析</span>
+            <a-switch v-model="aiSwitch" :disabled="!siteStore.siteInfo.ai.enable" style="margin-left: 10px;" />
+            <span style="color: var(--color-text-secondary);margin-left: 10px;font-size: 12px;">开启后粘贴即可自动分析</span>
+        </div>
         <a-form-item field="content" validate-trigger="blur" :rules="[{ required: true, message: '请输入文章内容' }]">
             <MdEditor v-model="form.content" placeholder="请输入文章内容" :toolbarsExclude="['github']"
                 @on-upload-img="onUploadImg" @paste="handlePaste">
@@ -59,7 +65,7 @@
         </a-collapse>
         <div class="action">
             <a-button type="primary" @click="publishArticle(2)" size="large">{{ props.articleId ? '更新文章' : '发布文章'
-            }}</a-button>
+                }}</a-button>
             <a-button @click="publishArticle(1)" size="large" type="secondary">存为草稿</a-button>
         </div>
     </a-form>
@@ -80,6 +86,7 @@ import { aiArticleAnalysisApi } from "@/api/ai_api";
 import { type aiArticleAnalysisApiRes } from "@/api/ai_api"
 import { onUploadImg } from "@/api/image_api";
 import { useRoute } from "vue-router";
+const aiSwitch = ref(false)
 interface Props {
     articleId?: number;
 }
@@ -120,10 +127,11 @@ const aiData = reactive<aiArticleAnalysisApiRes>({
     tag: []
 })
 const handlePaste = async (e: ClipboardEvent) => {
-    // if (!siteStore.siteInfo.ai.enable) {
-    //     return
-    // }
-    // let text =s e.clipboardData?.getData('text');
+    console.log(siteStore.siteInfo.ai.enable, aiSwitch.value)
+    if (!(siteStore.siteInfo.ai.enable && aiSwitch.value)) {
+        console.log("ai未开启")
+        return
+    }
     let file = e.clipboardData?.files?.[0];
     if (file && file.type.includes('image')) {
         return

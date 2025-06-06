@@ -63,7 +63,7 @@ const changeCollect = (item: collectRes) => {
   console.log('collectID', collectID)
   console.log('item.id', item.id)
   if (collectID === _id) {
-    _id = undefined
+    _id = -1
   }
   router.push({
     name: route.name as string,

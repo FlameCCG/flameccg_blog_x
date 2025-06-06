@@ -37,8 +37,8 @@ export const readChat = (id: number): Promise<baseResponse<string>> => {
   return useAxios.post('/chat/read/' + id);
 };
 
-export const removeMessage = (ids: number): Promise<baseResponse<string>> => {
-  return useAxios.delete('/chat', { data: ids });
+export const removeChatMessage = (ids: number[]): Promise<baseResponse<string>> => {
+  return useAxios.delete('/chat', { data: { ids } });
 };
 
 export interface mySessionListRes {

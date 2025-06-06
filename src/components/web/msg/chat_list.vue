@@ -1,29 +1,38 @@
 <template>
     <div class="fc_chat_list_com scrollbar">
+        <div class="action">
+            <span class="patchAction" @click="check">批量操作</span>
+            <a-button status="danger" size="mini" v-if="checkIDList.length && isCheck"
+                @click="chatRemoveApi">批量删除</a-button>
+        </div>
         <div class="innter">
             <div class="more">
                 <span @click="loadMore">加载更多</span>
             </div>
-            <div class="item" v-for="item in chats.list" :key="item.id" :class="{ isMe: item.isMe }">
-                <div class="top">
-                    <div class="date">{{ dateTimeFormat(item.createAt) }}</div>
-                </div>
-                <div class="bottom">
-                    <a-avatar :image-url="item.sendUserAvatar"
-                        @click="() => router.push({ name: 'userArticle', params: { id: item.senderUserID } })"
-                        style="cursor: pointer;"></a-avatar>
-                    <div class="content">
-                        <Msg_content :msg="item.msg"></Msg_content>
+            <a-checkbox-group v-model="checkIDList">
+                <div class="item" v-for="item in chats.list" :key="item.id"
+                    :class="{ isMe: item.isMe, isCheck: inList(item.id) }">
+                    <div class="top">
+                        <div class="date">{{ dateTimeFormat(item.createAt) }}</div>
+                    </div>
+                    <div class="bottom">
+                        <a-checkbox :value="item.id" v-if="isCheck"></a-checkbox>
+                        <a-avatar :image-url="item.sendUserAvatar"
+                            @click="() => router.push({ name: 'userArticle', params: { id: item.senderUserID } })"
+                            style="cursor: pointer;"></a-avatar>
+                        <div class="content">
+                            <Msg_content :msg="item.msg"></Msg_content>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a-checkbox-group>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { type chatListAndUserRes, chatListApi, type chatListReq } from '@/api/chat_api'
-import { reactive, nextTick } from 'vue';
+import { reactive, nextTick, ref, defineExpose } from 'vue';
 import type { listResponse } from '@/api';
 import { useRoute } from 'vue-router';
 import { dateTimeFormat } from '@/utils/date';
@@ -31,8 +40,13 @@ import { useUserStore } from '@/stores/user_store';
 import { watch } from 'vue';
 import { Message } from '@arco-design/web-vue';
 import { useRouter } from 'vue-router';
-import { MdPreview } from 'md-editor-v3';
 import Msg_content from './msg_content.vue';
+import { removeChatMessage } from '@/api/chat_api'
+const isCheck = ref(false);
+const check = () => {
+    console.log(isCheck.value)
+    isCheck.value = !isCheck.value
+}
 const router = useRouter()
 const chats = reactive<listResponse<chatListAndUserRes>>({
     list: [],
@@ -79,10 +93,16 @@ watch(
         });
     }
 );
+const chatRemoveApi = async () => {
+    const res = await removeChatMessage(checkIDList.value)
+    checkIDList.value = []
+    getData()
+    Message.success(res.msg)
 
+}
+const checkIDList = ref<number[]>([])
 async function loadMore() {
-    // @ts-ignore
-    params.page += 1
+    params.page = (params.page ?? 1) + 1
     const res = await chatListApi(params)
     if (res.data.list.length === 0) {
         Message.info('已经是最早的消息了')
@@ -92,10 +112,28 @@ async function loadMore() {
     chats.count += res.data.count
 }
 defineExpose({ getData })
+const inList = (id: number): boolean => {
+    return checkIDList.value.some(item => item === id)
+}
 </script>
 <style lang="less">
 .fc_chat_list_com {
     overflow-y: auto;
+
+    .action {
+        display: flex;
+        align-items: center;
+        padding: 10px 20px;
+        height: 30px;
+
+        .patchAction {
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--color-text-2);
+            margin-right: 10px;
+        }
+    }
+
 
     .more {
         display: flex;
@@ -103,7 +141,6 @@ defineExpose({ getData })
         align-items: center;
         font-size: 14px;
         color: var(--color-text-1);
-        margin-top: 10px;
 
         span {
             cursor: pointer;
@@ -111,8 +148,16 @@ defineExpose({ getData })
         }
     }
 
+    .arco-checkbox-group {
+        width: 100%;
+    }
+
     .item {
         padding: 10px 20px;
+
+        &.isCheck {
+            background-color: var(--color-fill-2);
+        }
 
         &.isMe {
             .bottom {

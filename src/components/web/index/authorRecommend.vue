@@ -5,7 +5,7 @@
                 <a-empty description="暂无推荐作者" />
             </template>
             <div class="item" v-for="item in data.list" :key="item.userID">
-                <router-link :to="{ name: 'user', params: { id: item.userID } }" class="author-link">
+                <router-link :to="{ name: 'userArticle', params: { id: item.userID } }" class="author-link">
                     <a-avatar :image-url="item.userAvatar" :size="40"></a-avatar>
                     <div class="info">
                         <div class="userNickName">
@@ -51,7 +51,6 @@ const focus = async (isFocusing: boolean, userID: number) => {
     }
     try {
         await focusService(isFocusing, userID);
-        Message.success('关注成功');
         getData();
     } catch (error) {
         Message.error('关注失败');
@@ -67,7 +66,8 @@ const getData = async () => {
     loading.value = true;
     try {
         const res = await authorRecommendApi(params);
-        Object.assign(data, res.data);
+        Object.assign(data, res.data)
+        console.log(data);
     } catch (error) {
         Message.error('获取推荐作者失败');
     } finally {

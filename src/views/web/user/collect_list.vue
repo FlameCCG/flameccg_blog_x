@@ -23,7 +23,7 @@ const articleListRef = ref<InstanceType<typeof Fc_article_list>>();
 const dispatchDeleteHandler = async (req: number[]) => {
     let params: removeCollectArticleReq = {
         articleIDList: req,
-        collectionID: 0,
+        collectionID: Number(route.params.query)
     }
     const res = await removeCollectArticle(params);
     Message.success(res.msg);

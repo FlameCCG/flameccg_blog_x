@@ -2,9 +2,16 @@
     <div class="fc-session-list">
         <div class="session-item" :class="{ active: item.userID === Number(route.query.userID) }"
             v-for="item in session.list" :key="item.userID" @click="goItem(item)">
-            <div class="avatar-wrapper">
-                <a-avatar :image-url="item.userAvatar" :size="48" shape="circle" />
-            </div>
+            <a-trigger trigger="contextMenu" align-point>
+                <div class="avatar-wrapper">
+                    <a-avatar :image-url="item.userAvatar" :size="48" shape="circle" />
+                </div>
+                <template #content>
+                    <div class="item_context_menu_user">
+                        <span class="remove-session" @click="removeSession(item.userID)"> 删除会话</span>
+                    </div>
+                </template>
+            </a-trigger>
 
             <div class="content-wrapper">
                 <!-- 顶部：昵称 + 关系标签 -->
@@ -32,17 +39,19 @@ import { reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { relationOptions } from '@/options/options';
 import Fc_label from '@/components/common/fc_label.vue';
-import { mySessionListApi, type mySessionListRes } from '@/api/chat_api';
+import { mySessionListApi, removeUserSession, type mySessionListRes } from '@/api/chat_api';
 import { dateFormat } from '@/utils/date';
 import { type paramsType, type listResponse } from '@/api';
 import { userBaseInfoStore } from '@/stores/user_base_store';
 import { useUserStore } from '@/stores/user_store';
 import Msg_preview from './msg_preview.vue';
+import { Message } from '@arco-design/web-vue';
 
 const route = useRoute();
 const router = useRouter();
 const emit = defineEmits<{
     (e: 'routeChange', userID: number): void;
+    (e: 'getSessionCount', count: number): void
 }>();
 
 const session = reactive<listResponse<mySessionListRes>>({ list: [], count: 0 });
@@ -80,12 +89,32 @@ const getData = async () => {
     if (!Number.isNaN(urlID) && !session.list.some((i) => i.userID === urlID)) {
         initUser(urlID);
     }
+    emit("getSessionCount", data.list.length)
 };
-
+const removeSession = async (userID: number) => {
+    const res = await removeUserSession(userID);
+    Message.info(res.msg);
+    getData();
+}
 onMounted(getData);
 </script>
 
 <style lang="less" scoped>
+.item_context_menu_user {
+    background-color: var(--color-bg-1);
+    padding: 20px 0;
+
+    span {
+        color: var(--color-text-1);
+        cursor: pointer;
+        padding: 10px 20px;
+
+        &:hover {
+            background-color: var(--color-fill-1);
+        }
+    }
+}
+
 .fc-session-list {
     width: 300px;
     height: 100%;

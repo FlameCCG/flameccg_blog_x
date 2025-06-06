@@ -54,43 +54,71 @@ async function goTag(item: tagListRes) {
     .body {
         padding: 20px;
         position: relative;
+        overflow: hidden; // 隐藏变形时可能产生的轻微溢出
 
         &::before {
             display: block;
             content: "";
             width: 20px;
             height: 20px;
+            // 初始状态：一个蓝色的发光球
             background-color: rgb(var(--arcoblue-6));
+            border-radius: 50%; // 变成圆形
+            box-shadow: 0 0 12px rgb(var(--arcoblue-6)), 0 0 4px white; // 增加光晕效果
+
             position: absolute;
             left: 0;
             top: 0;
-            animation: box_move 3s infinite ease-in-out;
+            // 动画时间稍作延长，让变形效果更舒展
+            animation: creative_move 5s infinite ease-in-out;
         }
 
-        @keyframes box_move {
+        // --- 核心改动在这里 ---
+        // 保留了原有的 left/top 移动路径，但增加了 transform, border-radius, background-color 的变化
+        @keyframes creative_move {
             0% {
                 left: 0;
                 top: 0;
+                transform: rotate(0deg);
+                border-radius: 50%; // 圆形
+                background-color: rgb(var(--arcoblue-6));
+                box-shadow: 0 0 12px rgb(var(--arcoblue-6));
             }
 
             25% {
                 left: calc(100% - 20px);
                 top: 0px;
+                transform: rotate(360deg);
+                border-radius: 50% 70% 50% 30%; // 变形
+                background-color: rgb(var(--green-6));
+                box-shadow: 0 0 15px rgb(var(--green-6));
             }
 
             50% {
                 left: calc(100% - 20px);
                 top: calc(100% - 20px);
+                transform: rotate(720deg);
+                border-radius: 50%; // 变回圆形
+                background-color: rgb(var(--orangered-6));
+                box-shadow: 0 0 12px rgb(var(--orangered-6));
             }
 
             75% {
                 top: calc(100% - 20px);
                 left: 0;
+                transform: rotate(1080deg);
+                border-radius: 30% 50% 70% 50%; // 再次变形
+                background-color: rgb(var(--purple-6));
+                box-shadow: 0 0 15px rgb(var(--purple-6));
             }
 
-            to {
+            100% {
                 left: 0;
                 top: 0;
+                transform: rotate(1440deg);
+                border-radius: 50%; // 恢复初始状态
+                background-color: rgb(var(--arcoblue-6));
+                box-shadow: 0 0 12px rgb(var(--arcoblue-6));
             }
         }
 
@@ -106,6 +134,9 @@ async function goTag(item: tagListRes) {
                 justify-content: center;
                 cursor: pointer;
                 color: var(--color-text-1);
+                // 确保标签内容在动画之上
+                position: relative;
+                z-index: 2;
 
                 &.active {
                     color: rgb(var(--arcoblue-6));

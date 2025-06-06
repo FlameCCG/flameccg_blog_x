@@ -35,10 +35,13 @@ import type { baseResponse } from '@/api';
 import { ref } from 'vue';
 import { Message } from '@arco-design/web-vue';
 import router from '@/router';
+import { useRoute } from 'vue-router';
 const baseMsgRef = ref()
 const getData = () => {
     baseMsgRef.value.getData()
 }
+const route = useRoute()
+
 </script>
 
 <style lang="less">

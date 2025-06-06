@@ -37,9 +37,11 @@ import { Message } from '@arco-design/web-vue';
 import { reactive } from 'vue';
 import { readSiteMsg, removeSiteMsg } from '@/api/site_msg_api';
 import NoDataLottie from '@/components/NoDataLottie.vue';
+import { useRoute } from 'vue-router';
 
 interface Props {
     t: 1 | 2 | 3
+    limit?: number
 }
 
 const emits = defineEmits(['getData'])
@@ -49,7 +51,7 @@ const data = reactive<listResponse<mySiteMsgRes>>({
     count: 0
 })
 const store = useUserStore()
-
+const route = useRoute()
 const handleSelect = async (key: string, id: number) => {
     let res: baseResponse<string>
     if (key === 'delete') {
@@ -69,6 +71,14 @@ const params = reactive<mySiteMsgListReq>({
 })
 const userStore = useUserStore()
 const getData = async () => {
+    console.log('getData', route.name)
+    if (route.name === 'msgSystem') {
+        params.limit = 11;
+    } else if (route.name === 'msgLike') {
+        params.limit = 9;
+    } else if (route.name === 'msgChat') {
+        params.limit = 10
+    }
     if (!userStore.isLogin) {
         router.push({ name: 'webHome' })
     }
